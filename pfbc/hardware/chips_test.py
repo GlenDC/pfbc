@@ -1,6 +1,7 @@
 import unittest
 
-from . import nirvana, \
+from pfbc.hardware import nirvana
+from pfbc.hardware.chips import \
     Not, And, Or, Xor
 
 

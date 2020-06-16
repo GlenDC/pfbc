@@ -15,7 +15,7 @@ class InstallLocalPackage(install):
     def run(self):
         install.run(self)
         subprocess.call(
-            f"python {root}/pfbc/hardware/chips/nirvana/setup.py install", shell=True
+            f"python {root}/pfbc/hardware/nirvana/setup.py install", shell=True
         )
 
 

@@ -10,7 +10,7 @@ def main():
           description="Python interface for primitive chips written in C, handed by God.",
           author="glendc",
           author_email="contact@glendc.com",
-          ext_modules=[Extension("nirvana", [f"{root}/primchips.c"])])
+          ext_modules=[Extension("pfbc.hardware.nirvana", [f"{root}/src/primchips.c"])])
 
 
 if __name__ == "__main__":

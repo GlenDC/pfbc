@@ -1,4 +1,4 @@
-import nirvana
+from pfbc.hardware import nirvana
 
 def Not(a: bool) -> bool:
     return nirvana.nand(a, a)

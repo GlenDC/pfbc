@@ -2,7 +2,9 @@ import unittest
 
 from pfbc.hardware import nirvana
 from pfbc.hardware.chips import \
-    Not, And, Or, Xor
+    Not, And, Or, Xor, Mux, DMux, \
+    Not16, And16, Or16, Mux16, \
+    Or8Way, DMux4Way, DMux8Way
 
 
 class TestNirvana(unittest.TestCase):
@@ -35,6 +37,107 @@ class TestChips(unittest.TestCase):
         self.assertEqual(True, Xor(True, False))
         self.assertEqual(True, Xor(False, True))
         self.assertEqual(False, Xor(True, True))
+
+    def test_mux(self):
+        self.assertEqual(False, Mux(False, False, False))
+        self.assertEqual(True, Mux(True, False, False))
+        self.assertEqual(False, Mux(False, True, False))
+        self.assertEqual(True, Mux(True, True, False))
+        self.assertEqual(False, Mux(False, False, True))
+        self.assertEqual(False, Mux(True, False, True))
+        self.assertEqual(True, Mux(False, True, True))
+        self.assertEqual(True, Mux(True, True, True))
+
+    def test_dmux(self):
+        self.assertEqual((False, False), DMux(False, False))
+        self.assertEqual((False, False), DMux(False, True))
+        self.assertEqual((True, False), DMux(True, False))
+        self.assertEqual((False, True), DMux(True, True))
+
+
+class TestChipsBus(unittest.TestCase):
+    def test_not16(self):
+        self.assertEqual(tuple([True]*16), Not16(tuple([False]*16)))
+        self.assertEqual(tuple([False]*16), Not16(tuple([True]*16)))
+        self.assertEqual(tuple([False, True]*8), Not16(tuple([True, False]*8)))
+        self.assertEqual(tuple([True, False]*8), Not16(tuple([False, True]*8)))
+        self.assertEqual(tuple([True]+([False]*14)+[True]), Not16(tuple([False]+([True]*14)+[False])))
+
+    def test_and16(self):
+        self.assertEqual(tuple([False]*16), And16((tuple([False]*16)), (tuple([False]*16))))
+        self.assertEqual(tuple([False]*16), And16((tuple([True]*16)), (tuple([False]*16))))
+        self.assertEqual(tuple([False]*16), And16((tuple([False]*16)), (tuple([True]*16))))
+        self.assertEqual(tuple([True]*16), And16((tuple([True]*16)), (tuple([True]*16))))
+        self.assertEqual(tuple([True, False]*8), And16(tuple([True, False]*8), tuple([True, False]*8)))
+        self.assertEqual(tuple([False, True]*8), And16(tuple([False, True]*8), tuple([False, True]*8)))
+
+    def test_or16(self):
+        self.assertEqual(tuple([False]*16), Or16((tuple([False]*16)), (tuple([False]*16))))
+        self.assertEqual(tuple([True]*16), Or16((tuple([True]*16)), (tuple([False]*16))))
+        self.assertEqual(tuple([True]*16), Or16((tuple([False]*16)), (tuple([True]*16))))
+        self.assertEqual(tuple([True]*16), Or16((tuple([True]*16)), (tuple([True]*16))))
+        self.assertEqual(tuple([True, False]*8), Or16(tuple([True, False]*8), tuple([True, False]*8)))
+        self.assertEqual(tuple([True]*16), Or16(tuple([True, False]*8), tuple([True, True]*8)))
+        self.assertEqual(tuple([False, True]*8), Or16(tuple([False, True]*8), tuple([False, True]*8)))
+        self.assertEqual(tuple([True]*16), Or16(tuple([True, True]*8), tuple([False, True]*8)))
+
+    def test_mux16(self):
+        self.assertEqual(tuple([False]*16), Mux16(tuple([False]*16), tuple([False]*16), False))
+        self.assertEqual(tuple([True]*16), Mux16(tuple([True]*16), tuple([False]*16), False))
+        self.assertEqual(tuple([False]*16), Mux16(tuple([False]*16), tuple([True]*16), False))
+        self.assertEqual(tuple([True]*16), Mux16(tuple([True]*16), tuple([True]*16), False))
+        self.assertEqual(tuple([False]*16), Mux16(tuple([False]*16), tuple([False]*16), True))
+        self.assertEqual(tuple([False]*16), Mux16(tuple([True]*16), tuple([False]*16), True))
+        self.assertEqual(tuple([True]*16), Mux16(tuple([False]*16), tuple([True]*16), True))
+        self.assertEqual(tuple([True]*16), Mux16(tuple([True]*16), tuple([True]*16), True))
+        self.assertEqual(tuple([False, True]*8), Mux16(tuple([False, True]*8), tuple([True, False]*8), False))
+        self.assertEqual(tuple([True, False]*8), Mux16(tuple([False, True]*8), tuple([True, False]*8), True))
+
+
+class TestChipsMulti(unittest.TestCase):
+    def test_or8way(self):
+        self.assertEqual(False, Or8Way(tuple([False]*8)))
+        self.assertEqual(True, Or8Way(tuple([True]*8)))
+        self.assertEqual(True, Or8Way(tuple([True]+([False]*7))))
+        self.assertEqual(True, Or8Way(tuple([False, False, True]+([False]*5))))
+        self.assertEqual(True, Or8Way(tuple(([False]*7)+[True])))
+        self.assertEqual(True, Or8Way(tuple([False]+([True]*7))))
+
+    def test_dmux4way(self):
+        self.assertEqual(tuple([False, False, False, False]), DMux4Way(False, tuple([False, False])))
+        self.assertEqual(tuple([False, False, False, False]), DMux4Way(False, tuple([True, False])))
+        self.assertEqual(tuple([False, False, False, False]), DMux4Way(False, tuple([False, True])))
+        self.assertEqual(tuple([False, False, False, False]), DMux4Way(False, tuple([True, True])))
+        self.assertEqual(tuple([True, False, False, False]), DMux4Way(True, tuple([False, False])))
+        self.assertEqual(tuple([False, True, False, False]), DMux4Way(True, tuple([False, True])))
+        self.assertEqual(tuple([False, False, True, False]), DMux4Way(True, tuple([True, False])))
+        self.assertEqual(tuple([False, False, False, True]), DMux4Way(True, tuple([True, True])))
+
+    def test_dmux8way(self):
+        self.assertEqual(tuple([False, False, False, False, False, False, False, False]), DMux8Way(False, tuple([False, False, False])))
+        self.assertEqual(tuple([False, False, False, False, False, False, False, False]), DMux8Way(False, tuple([False, False, True])))
+        self.assertEqual(tuple([False, False, False, False, False, False, False, False]), DMux8Way(False, tuple([False, True, False])))
+        self.assertEqual(tuple([False, False, False, False, False, False, False, False]), DMux8Way(False, tuple([False, True, True])))
+        self.assertEqual(tuple([False, False, False, False, False, False, False, False]), DMux8Way(False, tuple([True, False, False])))
+        self.assertEqual(tuple([False, False, False, False, False, False, False, False]), DMux8Way(False, tuple([True, False, True])))
+        self.assertEqual(tuple([False, False, False, False, False, False, False, False]), DMux8Way(False, tuple([True, True, False])))
+        self.assertEqual(tuple([False, False, False, False, False, False, False, False]), DMux8Way(False, tuple([True, True, True])))
+        self.assertEqual(tuple([True, False, False, False, False, False, False, False]), DMux8Way(True, tuple([False, False, False])))
+        self.assertEqual(tuple([False, True, False, False, False, False, False, False]), DMux8Way(True, tuple([False, False, True])))
+        self.assertEqual(tuple([False, False, True, False, False, False, False, False]), DMux8Way(True, tuple([False, True, False])))
+        self.assertEqual(tuple([False, False, False, True, False, False, False, False]), DMux8Way(True, tuple([False, True, True])))
+        self.assertEqual(tuple([False, False, False, False, True, False, False, False]), DMux8Way(True, tuple([True, False, False])))
+        self.assertEqual(tuple([False, False, False, False, False, True, False, False]), DMux8Way(True, tuple([True, False, True])))
+        self.assertEqual(tuple([False, False, False, False, False, False, True, False]), DMux8Way(True, tuple([True, True, False])))
+        self.assertEqual(tuple([False, False, False, False, False, False, False, True]), DMux8Way(True, tuple([True, True, True])))
+
+
+class TestChipsMultiBus(unittest.TestCase):
+    def test_mux4way16(self):
+        pass
+
+    def test_mux8way16(self):
+        pass
 
 
 if __name__ == '__main__':

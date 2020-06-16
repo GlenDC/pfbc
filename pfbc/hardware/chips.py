@@ -1,38 +1,102 @@
+from typing import Tuple, NewType
+
 from pfbc.hardware import nirvana
 
-def Not(a: bool) -> bool:
+
+Bit = NewType('Bit', bool)
+Bus16 = Tuple[
+    Bit, Bit, Bit, Bit,
+    Bit, Bit, Bit, Bit,
+    Bit, Bit, Bit, Bit,
+    Bit, Bit, Bit, Bit,
+    ]
+Bus8 = Tuple[
+    Bit, Bit, Bit, Bit,
+    Bit, Bit, Bit, Bit,
+    ]
+Bus4 = Tuple[Bit, Bit, Bit, Bit]
+Bus3 = Tuple[Bit, Bit, Bit]
+Bus2 = Tuple[Bit, Bit]
+
+
+def Not(a: Bit) -> Bit:
     return nirvana.nand(a, a)
 
 
-def And(a: bool, b: bool) -> bool:
-    return Not(nirvana.nand(a, b))
+def And(a: Bit, b: Bit) -> Bit:
+    out = nirvana.nand(a, b)
+    return Not(out)
 
 
-def Or(a: bool, b: bool) -> bool:
-    return nirvana.nand(Not(a), Not(b))
+def Or(a: Bit, b: Bit) -> Bit:
+    x = Not(a)
+    y = Not(b)
+    return nirvana.nand(x, y)
 
 
-def Xor(a: bool, b: bool) -> bool:
-    return And(nirvana.nand(a, b), Or(a, b))
+def Xor(a: Bit, b: Bit) -> Bit:
+    x = nirvana.nand(a, b)
+    y = Or(a, b)
+    return And(x, y)
 
 
-if __name__ == "__main__":
-    # TODO: write as unit tests, and more extended
+def Mux(a: Bit, b: Bit, s: Bit) -> Bit:
+    x = And(a, Not(s))
+    y = And(b, s)
+    return Or(x, y)
 
-    assert Not(True) == False
-    assert Not(False) == True
 
-    assert And(False, False) == False
-    assert And(True, False) == False
-    assert And(False, True) == False
-    assert And(True, True) == True
+def DMux(i: Bit, s: Bit) -> Bus2:
+    return tuple((
+        And(i, Not(s)),
+        And(i, s),
+    ))
 
-    assert Or(False, False) == False
-    assert Or(True, False) == True
-    assert Or(False, True) == True
-    assert Or(True, True) == True
 
-    assert Xor(False, False) == False
-    assert Xor(True, False) == True
-    assert Xor(False, True) == True
-    assert Xor(True, True) == False
+def Not16(a: Bus16) -> Bus16:
+    return tuple((Not(x) for x in a))
+
+
+def And16(a: Bus16, b: Bus16) -> Bus16:
+    return tuple((And(x, y) for (x, y) in zip(a, b)))
+
+
+def Or16(a: Bus16, b: Bus16) -> Bus16:
+    return tuple((Or(x, y) for (x, y) in zip(a, b)))
+
+
+def Mux16(a: Bus16, b: Bus16, s: Bit) -> Bus16:
+    return tuple((Mux(x, y, s) for (x, y) in zip(a, b)))
+
+
+def Or8Way(a: Bus8) -> Bit:
+    out = Or(a[0], a[1])
+    for x in a[2:]:
+        out = Or(out, x)
+    return out
+
+
+def Mux4Way16(a: Bus16, b: Bus16, c: Bus16, d: Bus16, s: Bus2) -> Bus16: # TODO: test
+    return Or16(
+        And16(a, And16(Not16(tuple(s[0]*16)), Not16(tuple(s[1]*16)))),
+        And16(b, And16(Not16(tuple(s[0]*16)), tuple(s[1]*16))),
+        And16(c, And16(tuple(s[0]*16), Not16(tuple(s[1]*16)))),
+        And16(d, And16(tuple(s[0]*16), tuple(s[1]*16))),
+    )
+
+
+def Mux8Way16(a: Bus16, b: Bus16, c: Bus16, d: Bus16, e: Bus16, f: Bus16, g: Bus16, h: Bus16, s: Bus3) -> Bus16: # TODO: test
+    return Or16(
+        And16(Not16(tuple(s[0]*16)), Mux4Way16(a, b, c, d, tuple(s[1:]))),
+        And16(tuple(s[0]*16), Mux4Way16(e, f, g, h, tuple(s[1:]))),
+    )
+
+
+def DMux4Way(i: Bit, s: Bus2) -> Bus4:
+    return DMux(And(Not(s[0]), i), s[1]) + \
+        DMux(And(s[0], i), s[1])
+
+
+def DMux8Way(i: Bit, s: Bus3) -> Bus8:
+    return DMux4Way(And(Not(s[0]), i), s[1:]) + \
+        DMux4Way(And(s[0], i), s[1:])

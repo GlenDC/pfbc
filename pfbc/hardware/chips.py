@@ -19,6 +19,10 @@ Bus3 = Tuple[Bit, Bit, Bit]
 Bus2 = Tuple[Bit, Bit]
 
 
+def FanOut16(bit: Bit) -> Bus16:
+    return tuple([bit]*16)
+
+
 def Not(a: Bit) -> Bit:
     return nirvana.nand(a, a)
 
@@ -78,17 +82,21 @@ def Or8Way(a: Bus8) -> Bit:
 
 def Mux4Way16(a: Bus16, b: Bus16, c: Bus16, d: Bus16, s: Bus2) -> Bus16: # TODO: test
     return Or16(
-        And16(a, And16(Not16(tuple(s[0]*16)), Not16(tuple(s[1]*16)))),
-        And16(b, And16(Not16(tuple(s[0]*16)), tuple(s[1]*16))),
-        And16(c, And16(tuple(s[0]*16), Not16(tuple(s[1]*16)))),
-        And16(d, And16(tuple(s[0]*16), tuple(s[1]*16))),
+        And16(a, And16(Not16(FanOut16(s[0])), Not16(FanOut16(s[1])))),
+        Or16(
+            And16(b, And16(Not16(FanOut16(s[0])), FanOut16(s[1]))),
+            Or16(
+                And16(c, And16(FanOut16(s[0]), Not16(FanOut16(s[1])))),
+                And16(d, And16(FanOut16(s[0]), FanOut16(s[1]))),
+            ),
+        ),
     )
 
 
 def Mux8Way16(a: Bus16, b: Bus16, c: Bus16, d: Bus16, e: Bus16, f: Bus16, g: Bus16, h: Bus16, s: Bus3) -> Bus16: # TODO: test
     return Or16(
-        And16(Not16(tuple(s[0]*16)), Mux4Way16(a, b, c, d, tuple(s[1:]))),
-        And16(tuple(s[0]*16), Mux4Way16(e, f, g, h, tuple(s[1:]))),
+        And16(Not16(FanOut16(s[0])), Mux4Way16(a, b, c, d, tuple(s[1:]))),
+        And16(FanOut16(s[0]), Mux4Way16(e, f, g, h, tuple(s[1:]))),
     )
 
 

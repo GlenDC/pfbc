@@ -1,10 +1,12 @@
+from itertools import combinations
 import unittest
 
 from pfbc.hardware import nirvana
 from pfbc.hardware.chips import \
     Not, And, Or, Xor, Mux, DMux, \
     Not16, And16, Or16, Mux16, \
-    Or8Way, DMux4Way, DMux8Way
+    Or8Way, DMux4Way, DMux8Way, \
+    Mux4Way16, Mux8Way16
 
 
 class TestNirvana(unittest.TestCase):
@@ -134,10 +136,20 @@ class TestChipsMulti(unittest.TestCase):
 
 class TestChipsMultiBus(unittest.TestCase):
     def test_mux4way16(self):
-        pass
+        for t in combinations([False, True], (16*4)+2):
+            inputs = [t[x:x+16] for x in xrange(0, len(t)-2, 16)]
+            a, b, c, d = inputs
+            s0, s1 = t[-2], t[-1]
+            out = t[int(s0)<<1 + int(s1)]
+            self.assertEqual(out, Mux4Way16(a, b, c, d, (s0, s1)))
 
     def test_mux8way16(self):
-        pass
+        for t in combinations([False, True], (16*8)+3):
+            inputs = [t[x:x+16] for x in xrange(0, len(t)-3, 16)]
+            a, b, c, d, e, f, g, h = inputs
+            s0, s1, s2 = t[-3], t[-2], t[-1]
+            out = t[int(s0)<<2 + int(s1)<<1 + int(s2)]
+            self.assertEqual(out, Mux8Way16(a, b, c, d, e, f, g, h, (s0, s1, s2)))
 
 
 if __name__ == '__main__':

@@ -23,8 +23,8 @@ def FanOut16(bit: Bit) -> Bus16:
     return tuple([bit]*16)
 
 
-def Not(a: Bit) -> Bit:
-    return nirvana.nand(a, a)
+def Not(i: Bit) -> Bit:
+    return nirvana.nand(i, i)
 
 
 def And(a: Bit, b: Bit) -> Bit:
@@ -93,7 +93,7 @@ def Mux4Way16(a: Bus16, b: Bus16, c: Bus16, d: Bus16, s: Bus2) -> Bus16: # TODO:
     )
 
 
-def Mux8Way16(a: Bus16, b: Bus16, c: Bus16, d: Bus16, e: Bus16, f: Bus16, g: Bus16, h: Bus16, s: Bus3) -> Bus16: # TODO: test
+def Mux8Way16(a: Bus16, b: Bus16, c: Bus16, d: Bus16, e: Bus16, f: Bus16, g: Bus16, h: Bus16, s: Bus3) -> Bus16:
     return Or16(
         And16(Not16(FanOut16(s[0])), Mux4Way16(a, b, c, d, tuple(s[1:]))),
         And16(FanOut16(s[0]), Mux4Way16(e, f, g, h, tuple(s[1:]))),

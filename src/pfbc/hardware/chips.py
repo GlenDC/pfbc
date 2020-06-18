@@ -413,14 +413,16 @@ def Mux4Way16(a: Bus16, b: Bus16, c: Bus16, d: Bus16, s: Bus2) -> Bus16:
                                       out
     ```
     """
+    s0, s1 = __fanOut16(s[0]), _fanOut16(s[1])
+    ns0, ns1 = Not16(s0), Not16(s1)
     return Or16(
         Or16(
-            And16(a, And16(Not16(__fanOut16(s[0])), Not16(__fanOut16(s[1])))),
-            And16(b, And16(Not16(__fanOut16(s[0])), __fanOut16(s[1]))),
+            And16(a, And16(ns0, ns1)),
+            And16(b, And16(ns0, s1)),
         ),
         Or16(
-            And16(c, And16(__fanOut16(s[0]), Not16(__fanOut16(s[1])))),
-            And16(d, And16(__fanOut16(s[0]), __fanOut16(s[1]))),
+            And16(c, And16(s0, ns1)),
+            And16(d, And16(s0, s1)),
         ),
     )
 

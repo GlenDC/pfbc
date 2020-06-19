@@ -1,10 +1,42 @@
+"""
+chips.py contains all the chips (logical gates)
+implementations used as the most primitive building
+blocks for everything else.
+
+All these chips are so called
+composite gates implemented using only the gates
+implemented in this chips as well as the elementary
+NAND gate/chip which we'll take as if given by God.
+
+> You can find the source code for the NAND gate
+> in the ./src/nirvana directory should you want to know.
+
+The NAND gate is implemented as a C extension
+— not because of performance reasons— but as to clearly
+highlight that we won't go deeper than this chips.py file
+and that starting from the NAND gate we considering everything
+from that level and lower as a blackbox. We'll
+assume that the electrical engineers and physicists
+can handle these lower layers just fine without
+a nosy bunch of hackers poking around there.
+
+Some chips manipulate a single bit while other
+manipulate a group of bits, called a bus.
+
+The actual implementation of these chips can
+— from a Python POV — be implemented a lot more
+performant, but that is not the point. The goal
+of this project — and as such this module — is
+to build a 16-bit computer starting from a NAND
+gate and building up, as if it were a real physical
+computer. As to demystify the complex system
+a modern computer really is.
+"""
+
+
 from typing import Tuple, NewType
 
 from pfbc.hardware import nirvana
-
-# TODO: add package and function docs!!!
-# function docs should include ASCII graph with logic,
-# as well as desired functionality
 
 
 Bit = NewType('Bit', bool)

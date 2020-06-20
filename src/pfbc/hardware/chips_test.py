@@ -77,13 +77,13 @@ class TestChipsMulti(unittest.TestCase):
 
     def test_dmux4way(self):
         for (i, s0, s1) in combinations_with_replacement([False, True], 3):
-            n = int(s0)<<1 | int(s1)
+            n = int(s1)<<1 | int(s0)
             out = tuple([0]*n + [i] + [0]*(3-n))
             self.assertEqual(out, DMux4Way(i, (s0, s1)))
 
     def test_dmux8way(self):
         for (i, s0, s1, s2) in combinations_with_replacement([False, True], 4):
-            n = int(s0)<<2 | int(s1)<<1 | int(s2)
+            n = int(s2)<<2 | int(s1)<<1 | int(s0)
             out = tuple([0]*n + [i] + [0]*(7-n))
             self.assertEqual(out, DMux8Way(i, (s0, s1, s2)))
 
@@ -94,7 +94,7 @@ class TestChipsMultiBus(unittest.TestCase):
             inputs = [t[x:x+16] for x in range(0, len(t)-2, 16)]
             a, b, c, d = inputs
             s0, s1 = t[-2], t[-1]
-            out = inputs[int(s0)<<1 | int(s1)]
+            out = inputs[int(s1)<<1 | int(s0)]
             self.assertEqual(out, Mux4Way16(a, b, c, d, (s0, s1)))
 
     def test_mux8way16(self):
@@ -102,7 +102,7 @@ class TestChipsMultiBus(unittest.TestCase):
             inputs = [t[x:x+16] for x in range(0, len(t)-3, 16)]
             a, b, c, d, e, f, g, h = inputs
             s0, s1, s2 = t[-3], t[-2], t[-1]
-            out = inputs[int(s0)<<2 | int(s1)<<1 | int(s2)]
+            out = inputs[int(s2)<<2 | int(s1)<<1 | int(s0)]
             self.assertEqual(out, Mux8Way16(a, b, c, d, e, f, g, h, (s0, s1, s2)))
 
 
